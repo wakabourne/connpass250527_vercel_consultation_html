@@ -3,9 +3,87 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hello, world!</title>
+    <title>ユーザー情報取得チェック</title>
 </head>
 <body>
-    <h1>Hello, world!</h1>
+
+    <h1>ユーザー情報取得チェック</h1>
+
+    <div style="margin-bottom: 15pt;">
+        <button id="generateBtn">ユーザーを変更</button>
+    </div>
+
+    <div id="loading" style="display: none;">読み込み中...</div>
+    
+    <div id="userContainer"></div>
+    
+    <script>
+        // DOM要素の取得
+        const generateBtn = document.getElementById('generateBtn');
+        const userContainer = document.getElementById('userContainer');
+        const loading = document.getElementById('loading');
+        
+        // ボタンクリックイベント
+        generateBtn.addEventListener('click', generateRandomUser);
+        
+        // ランダムユーザー生成関数
+        function generateRandomUser() {
+            // ローディング表示
+            loading.style.display = 'block';
+            
+            // Random User Generator APIからデータを取得
+            fetch('https://randomuser.me/api/')
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('ネットワークエラーが発生しました');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    // ローディング非表示
+                    loading.style.display = 'none';
+                    
+                    // ユーザーデータの表示
+                    displayUserData(data.results[0]);
+                })
+                .catch(error => {
+                    // エラー処理
+                    loading.style.display = 'none';
+                    console.error('エラーが発生しました:', error);
+                    userContainer.innerHTML = `<p>エラーが発生しました: ${error.message}</p>`;
+                });
+        }
+        
+        // ユーザーデータ表示関数
+        function displayUserData(user) {
+            // 日付フォーマット用の関数
+            const formatDate = (dateString) => {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('ja-JP');
+            };
+            
+            // HTMLの作成
+            const userCard = `
+                <div>
+                    <img src="${user.picture.large}" alt="ユーザー画像">
+                    <div>
+                        <h2>${user.name.title} ${user.name.first} ${user.name.last}</h2>
+                        <p><strong>アカウント名:</strong> ${user.login.username}</p>
+                        <p><strong>Email:</strong> ${user.email}</p>
+                        <p><strong>生年月日:</strong> ${formatDate(user.dob.date)} (${user.dob.age}歳)</p>
+                        <p><strong>住所:</strong> ${user.location.country}, ${user.location.state}, ${user.location.city}</p>
+                        <p><strong>電話番号:</strong> ${user.phone}</p>
+                        <p><strong>国籍:</strong> ${user.nat}</p>
+                    </div>
+                </div>
+            `;
+            
+            // ユーザーカードを表示
+            userContainer.innerHTML = userCard;
+        }
+        
+        // ページ読み込み時に自動的にユーザーを生成
+        window.addEventListener('load', generateRandomUser);
+    </script>
 </body>
 </html>
